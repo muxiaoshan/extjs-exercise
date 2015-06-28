@@ -1,0 +1,109 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh" lang="zh">
+<head>
+<meta http-equiv="content-type" content="text/html;charset=utf-8"/>
+<link href="ext-all.css" rel="stylesheet" type="text/css" />
+<script src="ext-base.js" type="text/javascript"></script>
+<script type="text/javascript"  src="ext-all.js"></script>
+<script type="text/javascript"  src="MultiSelect.js"></script>
+</head>
+<body>
+<script type="text/javascript" language="javascript">
+         if((typeof Range !== "undefined") && !Range.prototype.createContextualFragment) {
+             Range.prototype.createContextualFragment = function (html) {
+                 var frag = document.createDocumentFragment(),
+                        div = document.createElement("div");
+                 frag.appendChild(div);
+                 div.outerHTML = html;
+                 return frag;
+             };
+         }
+</script>
+（1）、这个是测试
+<script type="text/javascript">
+          Ext.onReady(function () {
+
+              var data = [[1, "张三"], [2, "李四"], [3, "王五"], [4, "李龙"], [5, "天哥"], [6, "随影"]];
+
+              var proxy = new Ext.data.MemoryProxy(data);
+
+              var columnName = new Ext.data.Record.create([
+             { name: "id", type: "int" },
+             { name: "name", type: "string" }
+             ]);
+
+              var reader = new Ext.data.ArrayReader({}, columnName);
+
+              var store = new Ext.data.Store({
+                  proxy: proxy,
+                  reader: reader,
+                  autoLoad: true
+              });
+              store.load();
+
+              //设置默认值
+              store.on('load', function () {
+                  //taskstatuscombo.selectAll(); //全选
+                  taskstatuscombo.setValue("王五"); //默认选中王五
+              });
+			  localDataDemoDiv = document.getElementById("localDataDemoDiv");
+              var taskstatuscombo = new Ext.form.MultiSelect({
+                  renderTo: localDataDemoDiv,
+                  width: 200,
+                  editable: false,
+                  store: store,
+                  valueField: 'id',
+                  displayField: "name",
+                  mode: 'local',
+                  triggerAction: 'all',
+                  allowBlank: false,
+                  emptyText: '请选择',
+                  maxHeight: 200, //下拉框的最大高度,
+				  listeners: {
+					 'select':function(combo, record,index){	
+							param = taskstatuscombo.getValue();//获取选中的值
+							console.log("第一个下拉框值：" + param);
+							taskstatusStore.baseParams = {'param':param};
+							taskstatusStore.proxy= new Ext.data.HttpProxy({url: 'backend.jsp'}); //根据队下拉选项的改变，动态取出对应的井
+							taskstatusStore.load();
+						}
+				  }
+              });
+          });
+      </script>
+<div id="localDataDemoDiv"></div>
+<hr />
+（2）这个是从数据库读出来的数据，显示
+<div id="remoteDataDemoDiv"></div>
+        <script type="text/javascript">
+		remoteDataDemoDiv = document.getElementById("remoteDataDemoDiv");
+        
+		var taskstatusStore = new Ext.data.JsonStore({
+			//url: 'backend.jsp',  //服务方法，这个是mvc的方法
+			root: "",
+			fields: ['ID', 'D_Name', 'Pass']
+		});
+		//不用默认加载
+		//taskstatusStore.load();
+
+		//设置默认值
+		/*taskstatusStore.on('load', function () {
+			taskstatuscombo.setValue(3);
+		});*/
+
+		var taskstatuscombo = new Ext.form.MultiSelect({
+			renderTo: remoteDataDemoDiv,
+			width: 200,
+			editable: false,
+			store: taskstatusStore,
+			valueField: 'ID',
+			displayField: "D_Name",
+			mode: 'local',
+			triggerAction: 'all',
+			allowBlank: false,
+			emptyText: '请选择',
+			maxHeight:200 //下拉框的最大高度
+		});
+        
+      </script>
+</body>
+</html>
